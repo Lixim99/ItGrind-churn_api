@@ -17,7 +17,8 @@ def build_preprocessor(
             ("scaler", StandardScaler()),
         ]), numeric_features),
         ("cat", Pipeline([
-            ("imputer", SimpleImputer(strategy="most_frequent", keep_empty_features=True)),
+            ("imputer", SimpleImputer(
+                strategy="most_frequent", keep_empty_features=True)),
             ("encoder", OneHotEncoder(handle_unknown="ignore")),
         ]), categorical_features),
     ])
@@ -25,9 +26,12 @@ def build_preprocessor(
 
 def split_data(X, y):
     if set(y.dropna().unique()) != {0, 1} or y.isna().any():
-        raise DataPreparationError("Для обучения нужны оба класса churn: 0 и 1")
+        raise DataPreparationError(
+            "Для обучения нужны оба класса churn: 0 и 1")
+
     try:
-        result = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+        result = train_test_split(
+            X, y, test_size=0.2, random_state=42, stratify=y)
         if any(set(part.unique()) != {0, 1} for part in result[2:]):
             raise ValueError("Both splits must contain both churn classes")
         return result

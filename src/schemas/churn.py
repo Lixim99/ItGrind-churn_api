@@ -4,6 +4,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 NonNegativeFloat = Annotated[float, Field(ge=0, allow_inf_nan=False)]
 NonNegativeInt = Annotated[int, Field(ge=0)]
+
 Region = Literal["europe", "asia", "america", "africa"]
 Device = Literal["mobile", "desktop", "tablet"]
 Payment = Literal["card", "paypal", "crypto"]
@@ -17,7 +18,10 @@ FEATURE_EXAMPLE = {
 
 
 class FeatureVectorChurn(BaseModel):
-    model_config = ConfigDict(extra="forbid", json_schema_extra={"examples": [FEATURE_EXAMPLE]})
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={"examples": [FEATURE_EXAMPLE]}
+    )
 
     monthly_fee: NonNegativeFloat
     usage_hours: NonNegativeFloat
@@ -31,7 +35,6 @@ class FeatureVectorChurn(BaseModel):
 
 
 class DatasetRowChurn(FeatureVectorChurn):
-    # Пропуски признаков заполняет pipeline, обученный только на train.
     monthly_fee: NonNegativeFloat | None
     usage_hours: NonNegativeFloat | None
     support_requests: NonNegativeInt | None
