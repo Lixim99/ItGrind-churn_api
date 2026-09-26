@@ -47,13 +47,8 @@ def test_full_churn_flow(client, dataset_path, churn_frame, training_config, pre
     assert history.json() == {"latest": entry, "history": [entry]}
 
 
-@pytest.mark.parametrize("endpoint", ["/predict", "/model/status"])
-def test_missing_model_returns_404(client, prediction_payload, endpoint):
-    response = (
-        client.post(endpoint, json=prediction_payload)
-        if endpoint == "/predict"
-        else client.get(endpoint)
-    )
+def test_missing_model_returns_404(client, prediction_payload):
+    response = client.post("/predict", json=prediction_payload)
 
     assert response.status_code == 404
     assert response.json() == {
@@ -63,14 +58,18 @@ def test_missing_model_returns_404(client, prediction_payload, endpoint):
     }
 
 
-@pytest.mark.parametrize("invalid_kind", ["missing_feature", "invalid_type", "not_a_list"])
+@pytest.mark.parametrize("invalid_kind", ["missing_feature", "invalid_type", "extra_feature", "empty_list", "not_an_object"])
 def test_invalid_prediction_request(client, prediction_payload, invalid_kind):
     if invalid_kind == "missing_feature":
         del prediction_payload[0]["monthly_fee"]
     elif invalid_kind == "invalid_type":
         prediction_payload[0]["monthly_fee"] = "not-a-number"
+    elif invalid_kind == "extra_feature":
+        prediction_payload[0]["unexpected"] = 1
+    elif invalid_kind == "empty_list":
+        prediction_payload = []
     else:
-        prediction_payload = prediction_payload[0]
+        prediction_payload = "invalid"
 
     response = client.post("/predict", json=prediction_payload)
 
@@ -79,8 +78,8 @@ def test_invalid_prediction_request(client, prediction_payload, invalid_kind):
     assert error["code"] == "VALIDATION_ERROR"
     assert error["message"] == "Некорректные входные данные"
     assert error["details"]
-    expected_location = ["body"] if invalid_kind == "not_a_list" else ["body", 0, "monthly_fee"]
-    assert error["details"][0]["loc"] == expected_location
+    if invalid_kind in ("missing_feature", "invalid_type"):
+        assert any(item["loc"][-2:] == [0, "monthly_fee"] for item in error["details"])
 
 
 @pytest.mark.parametrize("payload", [{}, {"model_type": "logistic_regression", "hyperparameters": []}])

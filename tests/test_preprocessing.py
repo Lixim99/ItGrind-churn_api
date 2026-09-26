@@ -68,7 +68,7 @@ def test_scaler_uses_only_training_data(churn_frame, feature_columns):
     X_test[numeric] = 1_000_000
     preprocessor.transform(X_test)
 
-    np.testing.assert_allclose(preprocessor.named_transformers_["num"].mean_, X_train[numeric].mean())
+    np.testing.assert_allclose(preprocessor.named_transformers_["num"]["scaler"].mean_, X_train[numeric].mean())
 
 
 def test_preprocessor_rejects_missing_feature(churn_frame, feature_columns):
