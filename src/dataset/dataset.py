@@ -22,6 +22,7 @@ class ChurnDataset:
         logger.info("Loading churn dataset path=%s", self.path)
 
         self.df, self.rows = None, []
+
         try:
             frame = pd.read_csv(self.path)
         except pd.errors.EmptyDataError as exc:
@@ -29,10 +30,12 @@ class ChurnDataset:
         except (OSError, pd.errors.ParserError, UnicodeError) as exc:
             raise DataPreparationError(
                 "Не удалось прочитать CSV датасета") from exc
+
         if frame.empty:
             raise EmptyDatasetError("Dataset is empty")
 
         expected = set(FEATURE_NAMES) | {"churn"}
+
         if set(frame.columns) != expected:
             raise DataPreparationError("Неверный набор столбцов датасета", {
                 "missing_features": sorted(expected - set(frame.columns)),

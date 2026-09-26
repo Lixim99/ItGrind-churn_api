@@ -31,9 +31,16 @@ def split_data(X, y):
 
     try:
         result = train_test_split(
-            X, y, test_size=0.2, random_state=42, stratify=y)
+            X,
+            y,
+            test_size=0.2,
+            random_state=42,
+            stratify=y
+        )
+
         if any(set(part.unique()) != {0, 1} for part in result[2:]):
             raise ValueError("Both splits must contain both churn classes")
+
         return result
     except ValueError as exc:
         raise DataPreparationError(
